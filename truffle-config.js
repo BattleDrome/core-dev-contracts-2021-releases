@@ -1,6 +1,6 @@
 var HDWalletProvider = require("@truffle/hdwallet-provider");
 var mnemonic = process.env.TRUFFLE_WALLET_MNEMONIC;
-if (mnemonic == null) mnemonic = "xxxxxxxx"
+if (mnemonic == null) mnemonic = "xxxxxxxxxxxxxxxxxxxx"
 
 module.exports = {
   contracts_build_directory: "./src/contracts",

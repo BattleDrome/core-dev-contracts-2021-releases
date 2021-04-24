@@ -9,6 +9,9 @@ import "./SponsorCore.sol";
 import "./Random.sol";
 
 contract EventCore is controlled,mortal,priced {
+
+	using LibWarrior for warrior;
+
     uint constant minNewTime = 1 hours;
     uint constant minTimeBeforeCancel = 1 hours;
 	uint constant idleTimeBeforeCancel = 24 hours;
@@ -422,10 +425,11 @@ contract EventCore is controlled,mortal,priced {
 	}
 
 	function canParticipate(uint eventID, uint newWarrior) public view returns(bool) {
+		warrior memory theWarrior = warriorCore.getWarrior(newWarrior);
 		return (
-			(warriorCore.getState(newWarrior)==LibWarrior.warriorState.Idle)
+			(theWarrior.state==warriorState.Idle)
 			&& eventParticipantsPresent[eventID][newWarrior] == false
-			&& canAddParticipant(eventID, warriorCore.getLevel(newWarrior))
+			&& canAddParticipant(eventID, theWarrior.stats.level)
 			&& (warriorCore.getEquipLevel(newWarrior)>=getMinEquipLevel(eventID))
 		);
 	}
@@ -449,8 +453,8 @@ contract EventCore is controlled,mortal,priced {
 				events[eventID].participants.length < events[eventID].warriorMin &&
 				events[eventID].state == EventState.New
 			) || (
-				events[eventID].state == EventState.Active &&
-				getTimeSinceLastPoll(eventID) > idleTimeBeforeCancel
+				events[eventID].state == EventState.Active //&& //Commented for warrior changes, cleanup in refactor
+				//getTimeSinceLastPoll(eventID) > idleTimeBeforeCancel
 			)
 		);
 	}	
@@ -483,7 +487,6 @@ contract EventCore is controlled,mortal,priced {
 	}
 
 	function joinEvent(uint eventID, uint theWarrior) public payable onlyTrustedWarriors() costs(getJoinFee(eventID)) {
-		//Is this warrior allowed to join?
         require(canParticipate(eventID,theWarrior),"!PARTICIPATE");
 		events[eventID].participants.push(theWarrior);
 		eventParticipantsPresent[eventID][theWarrior] = true;
@@ -496,6 +499,13 @@ contract EventCore is controlled,mortal,priced {
 		events[eventID].winnerPresent = true;
 	}
 
+	function donate() public payable {
+		unclaimedPool += msg.value;
+		emit Donation(msg.sender,msg.value,uint32(block.timestamp));
+	}
+
+//Commented due to warrior changes, cleanup in refactor
+/*
     function start(uint eventID) public onlyEventState(eventID,EventState.New) {
         require(canStart(eventID),"!START");
         setStartTime(eventID,uint32(block.timestamp));
@@ -580,11 +590,6 @@ contract EventCore is controlled,mortal,priced {
 		events[eventID].balance -= amount;
 		unclaimedPool += amount;
 		emit EventHasUnclaimed(uint32(eventID),uint32(block.timestamp),amount);
-	}
-
-	function donate() public payable {
-		unclaimedPool += msg.value;
-		emit Donation(msg.sender,msg.value,uint32(block.timestamp));
 	}
 
 	function getTimeSinceLastPoll(uint eventID) public view returns (uint) {
@@ -759,5 +764,6 @@ contract EventCore is controlled,mortal,priced {
         }
 		revert("!NotFound");
     }
+*/
 
 }

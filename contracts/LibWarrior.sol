@@ -1,6 +1,104 @@
 // SPDX-License-Identifier: LGPL-3.0
 pragma solidity 0.8.1;
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Data Structures
+//////////////////////////////////////////////////////////////////////////////////////////
+
+enum warriorState { 
+    Idle, 
+    Practicing, 
+    Training, 
+    Teaching, 
+    BattlePending, 
+    Battling, 
+    Incapacitated, 
+    Retired
+}
+
+enum ArmorType {
+    Minimal,
+    Light,
+    Medium,
+    Heavy
+}
+
+enum ShieldType {
+    None,
+    Light,
+    Medium,
+    Heavy
+}
+
+enum WeaponClass {
+    Slashing,
+    Cleaving,
+    Bludgeoning,
+    ExtRange
+}
+
+enum WeaponType {
+    //Slashing
+    Sword,              //0
+    Falchion,           //1
+    //Cleaving
+    Broadsword,         //2
+    Axe,                //3
+    //Bludgeoning
+    Mace,               //4
+    Hammer,             //5
+    Flail,              //6
+    //Extended-Reach
+    Trident,            //7
+    Halberd,            //8
+    Spear               //9
+}
+
+struct warriorStats {
+    uint64 baseHP;
+    uint64 dmg; 
+    uint64 xp;
+    uint16 str;
+    uint16 dex;
+    uint16 con;
+    uint16 luck;
+    uint64 points;
+    uint16 level;
+}
+
+struct warriorEquipment {
+    uint8 potions;
+    uint8 intPotions;
+    ArmorType armorType;
+    ShieldType shieldType;
+    WeaponType weaponType;
+    uint8 armorStrength;
+    uint8 shieldStrength;
+    uint8 weaponStrength;
+    uint8 armorWear;
+    uint8 shieldWear;
+    uint8 weaponWear;
+    bool helmet;
+}
+
+struct warrior {
+    //Header
+    bytes32 bytesName;
+    address payable owner;
+    uint balance;
+    uint cosmeticSeed;
+    uint16 colorHue;
+    warriorState state;
+    uint32 creationTime;
+    //Stats
+    warriorStats stats;
+    //Equipment
+    warriorEquipment equipment;
+    //Misc
+    uint teachingFee;
+    uint32 trainingEnds;
+}
+
 library LibWarrior {
 	
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -59,100 +157,6 @@ library LibWarrior {
     uint16 constant potionHealAmount = 100;
 
     //////////////////////////////////////////////////////////////////////////////////////////
-    // Data Structures
-    //////////////////////////////////////////////////////////////////////////////////////////
-    
-    enum warriorState { 
-        Idle, 
-        Practicing, 
-        Training, 
-        Teaching, 
-        BattlePending, 
-        Battling, 
-        Incapacitated, 
-        Retired
-    }
-
-    enum ArmorType {
-        Minimal,
-        Light,
-        Medium,
-        Heavy
-    }
-
-    enum ShieldType {
-        None,
-        Light,
-        Medium,
-        Heavy
-    }
-
-    enum WeaponClass {
-        Slashing,
-        Cleaving,
-        Bludgeoning,
-        ExtRange
-    }
-
-    enum WeaponType {
-        //Slashing
-        Sword,              //0
-        Falchion,           //1
-        //Cleaving
-        Broadsword,         //2
-        Axe,                //3
-        //Bludgeoning
-        Mace,               //4
-        Hammer,             //5
-        Flail,              //6
-        //Extended-Reach
-        Trident,            //7
-        Halberd,            //8
-        Spear               //9
-    }
-
-    struct warrior {
-		bytes32 bytesName;
-		//Storage Cell 1 End
-		address payable owner;
-		//Storage Cell 2 End
-		uint balance;
-		//Storage Cell 3 End
-		uint teachingFee;
-		//Storage Cell 4 End
-		uint salePrice;
-		//Storage Cell 5 End
-		uint cosmeticSeed;
-		//Storage Cell 6 End
-		uint64 xp;
-		uint64 dmg; 
-		uint32 creationTime;
-		uint32 trainingEnds;
-		uint16 str;
-		uint16 dex;
-		uint16 con;
-		uint16 luck;
-		//Storage Cell 7 End
-		uint64 points;
-        uint16 colorHue;
-		uint16 level;
-		uint8 potions;
-		uint8 intPotions;
-        ArmorType armorType;
-        ShieldType shieldType;
-        WeaponType weaponType;
-        uint8 armorStrength;
-        uint8 shieldStrength;
-        uint8 weaponStrength;
-        uint8 armorWear;
-        uint8 shieldWear;
-        uint8 weaponWear;
-        bool helmet;
-		warriorState state;
-		//Storage Cell 8 End
-	}
-
-    //////////////////////////////////////////////////////////////////////////////////////////
     // Modifiers
     //////////////////////////////////////////////////////////////////////////////////////////
     
@@ -164,36 +168,40 @@ library LibWarrior {
 
     function newWarrior(address payable warriorOwner, uint randomSeed, uint16 colorHue, ArmorType armorType, ShieldType shieldType, WeaponType weaponType) internal view returns (warrior memory theWarrior) {
         theWarrior = warrior(
-			bytes32(0),	            //bytesName Empty to start
-			warriorOwner,			//owner
-			0,						//balance
-            0,                      //teachingFee
-            0,                      //salePrice
-            random(randomSeed,0),   //cosmeticSeed
-			0,						//xp
-			0,						//dmg
-			uint32(block.timestamp),			//creationTime
-			0,						//trainingEnds
-			startingStr,			//str
-			startingDex,			//dex
-			startingCon,			//con
-			startingLuck,			//luck
-			startingPoints,			//points
-            colorHue,               //colorHue
-			0,						//level
-			0,						//potions
-			0,						//intPotions
-            armorType,              //armorType
-            shieldType,             //shieldType
-            weaponType,             //weaponType
-            0,                      //armorStrength
-            0,                      //shieldStrength
-            0,                      //weaponStrength
-            0,                      //armorWear
-            0,                      //shieldWear
-            0,                      //weaponWear
-            false,                  //helmet
-			warriorState.Idle		//state
+			bytes32(0),	                                        //bytesName Empty to start
+			warriorOwner,			                            //owner
+			0,						                            //balance
+            random(randomSeed,0),                               //cosmeticSeed
+            colorHue,                                           //colorHue
+			warriorState.Idle,		                            //state
+			uint32(block.timestamp),                            //creationTime
+            warriorStats(
+                uint64(calcBaseHP(0,startingCon,startingStr)),  //BaseHP
+    			0,						                        //dmg
+                0,						                        //xp
+                startingStr,			                        //str
+                startingDex,			                        //dex
+                startingCon,			                        //con
+                startingLuck,			                        //luck
+                startingPoints,			                        //points
+                0						                        //level
+            ),
+            warriorEquipment(
+                0,						                        //potions
+                0,						                        //intPotions
+                armorType,                                      //armorType
+                shieldType,                                     //shieldType
+                weaponType,                                     //weaponType
+                0,                                              //armorStrength
+                0,                                              //shieldStrength
+                0,                                              //weaponStrength
+                0,                                              //armorWear
+                0,                                              //shieldWear
+                0,                                              //weaponWear
+                false                                           //helmet
+            ),
+            0,                                                  //teachingFee
+			0						                            //trainingEnds
         );
     }
 
@@ -232,228 +240,87 @@ library LibWarrior {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
-    // Derived/Calculated Getters
+    // Derivation / Calaculation Pure Functions
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    function getName(warrior storage w) internal view returns(string memory name) {
-        name = bytes32ToString(w.bytesName);
+    function calcBaseHP(uint16 level, uint16 con, uint16 str) internal pure returns (uint) {
+		return (con*(hpConFactor+level)) + (str*hpStrFactor);
     }
 
-    function getBaseHP(warrior storage w) internal view returns (uint) {
-		return (w.con*(hpConFactor+w.level)) + (w.str*hpStrFactor);
-    }
-
-    function getHP(warrior storage w) internal view returns (int) {
-        return int(getBaseHP(w) - w.dmg);
-    }
-
-    function getWeaponClass(warrior storage w) internal view returns (WeaponClass) {
-        if((w.weaponType==WeaponType.Broadsword || w.weaponType==WeaponType.Axe)) return WeaponClass.Cleaving;
-        if((w.weaponType==WeaponType.Mace || w.weaponType==WeaponType.Hammer || w.weaponType==WeaponType.Flail)) return WeaponClass.Bludgeoning;
-        if((w.weaponType==WeaponType.Trident || w.weaponType==WeaponType.Halberd || w.weaponType==WeaponType.Spear)) return WeaponClass.ExtRange;        
-        //if((w.weaponType==WeaponType.Sword || w.weaponType==WeaponType.Falchion)) return WeaponClass.Slashing;
-        //Default:
-        return WeaponClass.Slashing;
-    }
-   
-    function getArmorMod(warrior storage w) internal view returns(int con, int str, int dex) {
-        if(w.armorType==ArmorType.Minimal) {
-            con=-1;
-            dex=1;
-            str=0;
-        }
-        else if(w.armorType==ArmorType.Light) {
-            con=0;
-            dex=0;
-            str=0;
-        }
-        else if(w.armorType==ArmorType.Medium) {
-            con=1;
-            dex=-1;
-            str=0;
-        }
-        else if(w.armorType==ArmorType.Heavy) {
-            con=2;
-            dex=-2;
-            str=0;
-        }
-        con *= int8(w.armorStrength);
-        dex *= int8(w.armorStrength);
-        str *= int8(w.armorStrength);
-    }
-
-    function getShieldMod(warrior storage w) internal view returns(int con, int str, int dex) {
-        if(w.shieldType==ShieldType.None) {
-            con=0;
-            dex=0;
-            str=0;
-        }
-        else if(w.shieldType==ShieldType.Light) {
-            con=1;
-            dex=-1;
-            str=-1;
-        }
-        else if(w.shieldType==ShieldType.Medium) {
-            con=2;
-            dex=-2;
-            str=-1;
-        }
-        else if(w.shieldType==ShieldType.Heavy) {
-            con=3;
-            dex=-3;
-            str=-2;
-        }
-        con *= int8(w.shieldStrength);
-        dex *= int8(w.shieldStrength);
-        str *= int8(w.shieldStrength);
-    }
-
-    function getWeaponMod(warrior storage w) internal view returns(int con, int str, int dex) {
-        WeaponClass wc = getWeaponClass(w);
-        if(wc==WeaponClass.Slashing) {
-            con=0;
-            dex=1;
-            str=0;
-        } 
-        if(wc==WeaponClass.Cleaving) {
-            con=0;
-            dex=-1;
-            str=1;
-        } 
-        if(wc==WeaponClass.Bludgeoning) {
-            con=0;
-            dex=-2;
-            str=1;
-        } 
-        if(wc==WeaponClass.ExtRange) {
-            con=0;
-            dex=1;
-            str=-2;
-        } 
-        con *= int8(w.weaponStrength);
-        dex *= int8(w.weaponStrength);
-        str *= int8(w.weaponStrength);
-    }
-
-    function getHelmetMod(warrior storage w) internal view returns(int con, int str, int dex) {
-        if(w.helmet) {
-            con = 1;
-            dex = -1;
-            str = 0;
-        }else{
-            con = 0;
-            dex = 0;
-            str = 0;
-        }
-    }
-
-    function getEquipmentMods(warrior storage w) internal view returns(int con, int str, int dex) {
-        int tcon;
-        int tstr;
-        int tdex;
-        (tcon, tstr, tdex) = getArmorMod(w);
-        con += tcon;
-        str += tstr;
-        dex += tdex;
-        (tcon, tstr, tdex) = getShieldMod(w);
-        con += tcon;
-        str += tstr;
-        dex += tdex;
-        (tcon, tstr, tdex) = getWeaponMod(w);
-        con += tcon;
-        str += tstr;
-        dex += tdex;
-        (tcon, tstr, tdex) = getHelmetMod(w);
-        con += tcon;
-        str += tstr;
-        dex += tdex;
-    }
-
-    function getCombatCon(warrior storage w) internal view returns(uint16) {
-        int conmod;
-        int strmod;
-        int dexmod;
-        int val;
-        (conmod,strmod,dexmod) = getEquipmentMods(w);
-        val = int16(w.con) + conmod;
-        if(val<=0) val=1;
-        if(val>=0xFFFF) val=0xFFFF;
-        return uint16(int16(val));
-    }
-
-    function getCombatStr(warrior storage w) internal view returns(uint16) {
-        int conmod;
-        int strmod;
-        int dexmod;
-        int val;
-        (conmod,strmod,dexmod) = getEquipmentMods(w);
-        val = int16(w.str) + strmod;
-        if(val<=0) val=1;
-        if(val>=0xFFFF) val=0xFFFF;
-        return uint16(int16(val));
-    }
-
-    function getCombatDex(warrior storage w) internal view returns(uint16) {
-        int conmod;
-        int strmod;
-        int dexmod;
-        int val;
-        (conmod,strmod,dexmod) = getEquipmentMods(w);
-        val = int16(w.dex) + dexmod;
-        if(val<=0) val=1;
-        if(val>=0xFFFF) val=0xFFFF;
-        return uint16(int16(val));
-    }
-
-    function getXPTargetForLevel(uint16 level) internal pure returns(uint64) {
+    function calcXPTargetForLevel(uint16 level) internal pure returns(uint64) {
         return (level+levelOffset) ** levelExponent;
     }
 
-    function canLevelUp(warrior storage w) internal view returns(bool) {
-        return (w.xp >= getXPTargetForLevel(w.level));
+    function calcXPForPractice(uint16 level) internal pure returns (uint64) {
+        return calcXPTargetForLevel(level)/(((level+practiceLevelOffset)**2)+1);
     }
 
-    function getXPForKill(warrior storage w, uint16 killLevel) internal view returns (uint64) {
-        if(killLevel-w.level+killLevelOffset > 1) 
-            return ((killLevel+killLevelOffset)-w.level) ** levelExponent;
-        else
-            return 1;
+    function calcDominantStatValue(uint16 con, uint16 dex, uint16 str) internal pure returns(uint16) {
+        if(con>dex&&con>str) return con;
+        else if(dex>con&&dex>str) return dex;
+        else return str;
     }
 
-    function getXPForPractice(warrior storage w) internal view returns (uint64) {
-        return getXPTargetForLevel(w.level)/(((w.level+practiceLevelOffset)**2)+1);
+    function calcTimeToPractice(uint16 level) internal pure returns(uint) {
+		return trainingTimeFactor * ((level**levelExponent)+levelOffset);
     }
 
-    function getDominantStatValue(warrior storage w) internal view returns(uint16) {
-        if(w.con>w.dex&&w.con>w.str) return w.con;
-        else if(w.dex>w.con&&w.dex>w.str) return w.dex;
-        else return w.str;
+    function calcAttributeCost(uint8 amount, uint16 stat_base, uint costExponent) internal pure returns (uint cost) {
+        for(uint i=0;i<amount;i++){
+            cost += (stat_base + i) ** costExponent;
+        }
+    }
+    
+    function calcItemCost(uint8 amount, uint8 currentVal, uint baseCost, uint offset, uint exponent) internal pure returns (uint cost) {
+        for(uint i=0;i<amount;i++){
+            cost += ((i + 1 + currentVal + offset) ** exponent) * baseCost;
+        }
     }
 
-    function getTimeToPractice(warrior storage w) internal view returns(uint) {
-		return trainingTimeFactor * ((w.level**levelExponent)+levelOffset);
+    function calcReviveCost(uint16 level) internal pure returns(uint) {
+        return ((level ** 2) +1) * warriorReviveBaseCost;
     }
 
-    function canRevive(warrior storage w) internal view returns(bool) {
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Derived/Calculated Getters
+    //////////////////////////////////////////////////////////////////////////////////////////
+
+    function getName(warrior storage w) public view returns(string memory name) {
+        name = bytes32ToString(w.bytesName);
+    }
+
+    function getHP(warrior storage w) public view returns (int) {
+        return int(int64(w.stats.baseHP) - int64(w.stats.dmg));
+    }
+
+    function getWeaponClass(warrior storage w) public view returns (WeaponClass) {
+        if((w.equipment.weaponType==WeaponType.Broadsword || w.equipment.weaponType==WeaponType.Axe)) return WeaponClass.Cleaving;
+        if((w.equipment.weaponType==WeaponType.Mace || w.equipment.weaponType==WeaponType.Hammer || w.equipment.weaponType==WeaponType.Flail)) return WeaponClass.Bludgeoning;
+        if((w.equipment.weaponType==WeaponType.Trident || w.equipment.weaponType==WeaponType.Halberd || w.equipment.weaponType==WeaponType.Spear)) return WeaponClass.ExtRange;        
+        //Default, (w.weaponType==WeaponType.Sword || w.weaponType==WeaponType.Falchion):
+        return WeaponClass.Slashing;
+    }
+   
+    function canLevelUp(warrior storage w) public view returns(bool) {
+        return (w.stats.xp >= calcXPTargetForLevel(w.stats.level));
+    }
+
+    function canRevive(warrior storage w) public view returns(bool) {
 		return w.state == warriorState.Incapacitated;
     }
 
-    function getDamageReduction(warrior storage w) internal view returns (uint64) {
-        return getCombatCon(w);
-    }
-
-    function getCosmeticProperty(warrior storage w, uint propertyIndex) internal view returns (uint) {
+    function getCosmeticProperty(warrior storage w, uint propertyIndex) public view returns (uint) {
         return random(w.cosmeticSeed,propertyIndex);
     }
 
-    function getEquipLevel(warrior storage w) internal view returns (uint) {
-        if(w.weaponStrength>w.armorStrength && w.weaponStrength>w.shieldStrength){
-            return w.weaponStrength;
+    function getEquipLevel(warrior storage w) public view returns (uint) {
+        if(w.equipment.weaponStrength>w.equipment.armorStrength && w.equipment.weaponStrength>w.equipment.shieldStrength){
+            return w.equipment.weaponStrength;
         }else{
-            if(w.armorStrength>w.shieldStrength){
-                return w.armorStrength;
+            if(w.equipment.armorStrength>w.equipment.shieldStrength){
+                return w.equipment.armorStrength;
             }else{
-                return w.shieldStrength;
+                return w.equipment.shieldStrength;
             }
         }
     }
@@ -462,80 +329,39 @@ library LibWarrior {
     // Costing Getters
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    function getAttributeCost(uint8 amount, uint16 stat_base, uint costExponent) internal pure returns (uint cost) {
-        for(uint i=0;i<amount;i++){
-            cost += (stat_base + i) ** costExponent;
-        }
+    function getStatsCost(warrior storage w, uint8 strAmount, uint8 dexAmount, uint8 conAmount, uint8 luckAmount) public view returns (uint) {
+        return (
+            calcAttributeCost(strAmount,w.stats.str,strCostExponent)+
+            calcAttributeCost(dexAmount,w.stats.dex,dexCostExponent)+
+            calcAttributeCost(conAmount,w.stats.con,conCostExponent)+
+            calcAttributeCost(luckAmount,w.stats.luck,luckCostExponent)
+        );
     }
-
-    function getStrCost(warrior storage w, uint8 amount) internal view returns (uint) {
-        return getAttributeCost(amount,w.str,strCostExponent);
-    }
-
-    function getDexCost(warrior storage w, uint8 amount) internal view returns (uint) {
-        return getAttributeCost(amount,w.dex,dexCostExponent);
-    }
-
-    function getConCost(warrior storage w, uint8 amount) internal view returns (uint) {
-        return getAttributeCost(amount,w.con,conCostExponent);
-    }
-
-    function getLuckCost(warrior storage w, uint8 amount) internal view returns (uint) {
-        return getAttributeCost(amount,w.luck,luckCostExponent);
-    }
-
-    function getStatsCost(warrior storage w, uint8 strAmount, uint8 dexAmount, uint8 conAmount, uint8 luckAmount) internal view returns (uint) {
-        return getStrCost(w,strAmount) + getDexCost(w,dexAmount) + getConCost(w,conAmount) + getLuckCost(w,luckAmount);
-    }
-
-    function getItemCost(uint8 amount, uint8 currentVal, uint baseCost, uint offset, uint exponent) internal pure returns (uint cost) {
-        for(uint i=0;i<amount;i++){
-            cost += ((i + 1 + currentVal + offset) ** exponent) * baseCost;
-        }
-    }
-
-    function getArmorCost(warrior storage w, uint8 amount) internal view returns(uint) {
-        return getItemCost(amount,w.armorStrength,armorCost,armorCostOffset,armorCostExponent);
-    }
-
-    function getShieldCost(warrior storage w, uint8 amount) internal view returns(uint) {
-        return getItemCost(amount,w.shieldStrength,shieldCost,shieldCostOffset,shieldCostExponent);
-    }
-
-    function getWeaponCost(warrior storage w, uint8 amount) internal view returns(uint) {
-        return getItemCost(amount,w.weaponStrength,weaponCost,weaponCostOffset,weaponCostExponent);
-    }
-
-    function getPotionCost(uint8 amount) internal pure returns(uint) {
-        return potionCost * amount;        
-    }
-
-    function getIntPotionCost(uint8 amount) internal pure returns(uint) {
-        return intPotionCost * amount;        
-    }
-
-    function getEquipCost(warrior storage w, uint8 armorAmount, uint8 shieldAmount, uint8 weaponAmount, uint8 potionAmount, uint8 intPotionAmount) internal view returns(uint) {
-        return getArmorCost(w, armorAmount) + getShieldCost(w, shieldAmount) + getWeaponCost(w, weaponAmount) + getPotionCost(potionAmount) + getIntPotionCost(intPotionAmount);
-    }
-
-    function getReviveCost(warrior storage w) internal view returns(uint) {
-        return ((w.level ** 2) +1) * warriorReviveBaseCost;
+    
+    function getEquipCost(warrior storage w, uint8 armorAmount, uint8 shieldAmount, uint8 weaponAmount, uint8 potionAmount, uint8 intPotionAmount) public view returns(uint) {
+        return (
+            calcItemCost(armorAmount,w.equipment.armorStrength,armorCost,armorCostOffset,armorCostExponent)+
+            calcItemCost(shieldAmount,w.equipment.shieldStrength,shieldCost,shieldCostOffset,shieldCostExponent)+
+            calcItemCost(weaponAmount,w.equipment.weaponStrength,weaponCost,weaponCostOffset,weaponCostExponent)+
+            (potionCost*potionAmount)+
+            (intPotionCost+intPotionAmount)
+        );
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Setters
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    function setName(warrior storage w, string memory name) internal {
+    function setName(warrior storage w, string memory name) public {
         require(w.bytesName==bytes32(0));
         w.bytesName = stringToBytes32(name);
     }
 
-    function setOwner(warrior storage w, address payable newOwner) internal {
+    function setOwner(warrior storage w, address payable newOwner) public {
         w.owner = newOwner;
     }
 
-	function setState(warrior storage w, warriorState _state) internal {
+	function setState(warrior storage w, warriorState _state) public {
 		w.state = _state;
 	}
 
@@ -543,68 +369,31 @@ library LibWarrior {
     // Buying Things
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    function buyStrInternal(warrior storage w, uint8 amount) internal {
-		w.str += amount;
-    }
-
-    function buyDexInternal(warrior storage w, uint8 amount) internal {
-		w.dex += amount;
-    }
-
-    function buyConInternal(warrior storage w, uint8 amount) internal {
-		w.con += amount;
-    }
-
-    function buyLuckInternal(warrior storage w, uint8 amount) internal {
-		w.luck += amount;
-    }
-
-    function buyStats(warrior storage w, uint8 strAmount, uint8 dexAmount, uint8 conAmount, uint8 luckAmount) internal {
+    function buyStats(warrior storage w, uint8 strAmount, uint8 dexAmount, uint8 conAmount, uint8 luckAmount) public {
         require(strAmount>0 || dexAmount>0 || conAmount>0 || luckAmount>0); //Require buying at least something, otherwise you are wasting gas!
-        buyStrInternal(w,strAmount);
-        buyDexInternal(w,dexAmount);
-        buyConInternal(w,conAmount);
-        buyLuckInternal(w,luckAmount);        
+        w.stats.str += strAmount;
+        w.stats.dex += dexAmount;
+        w.stats.con += conAmount;
+        w.stats.luck += luckAmount;
+        w.stats.baseHP = uint64(calcBaseHP(w.stats.level,w.stats.con,w.stats.str));
     }
 
-    function buyPotionsInternal(warrior storage w, uint8 amount) internal {
-		require((w.potions+amount) < maxPotions);
-		w.potions = w.potions + amount;
-    }
-
-    function buyIntPotionsInternal(warrior storage w, uint8 amount) internal {
-        require((w.intPotions+amount) < maxIntPotions);
-		w.intPotions = w.intPotions + amount;
-    }
-
-    function buyArmorInternal(warrior storage w, uint8 amount) internal {
-        require((w.armorStrength+amount) < maxArmor);        
-		w.armorStrength += amount;
-    }
-    
-    function buyShieldInternal(warrior storage w, uint8 amount) internal {
-        require((w.shieldStrength+amount) < maxArmor);        
-		w.shieldStrength += amount;
-    }
-
-    function buyWeaponInternal(warrior storage w, uint8 amount) internal {
-        require((w.weaponStrength+amount) < maxWeapon);
-		w.weaponStrength += amount;
-    }
-
-    function buyEquipment(warrior storage w, uint8 armorAmount, uint8 shieldAmount, uint8 weaponAmount, uint8 potionAmount, uint8 intPotionAmount) internal {
-        buyArmorInternal(w,armorAmount);
-        buyShieldInternal(w,shieldAmount);
-        buyWeaponInternal(w,weaponAmount);
-        buyPotionsInternal(w,potionAmount);
-        buyIntPotionsInternal(w,intPotionAmount);
+    function buyEquipment(warrior storage w, uint8 armorAmount, uint8 shieldAmount, uint8 weaponAmount, uint8 potionAmount, uint8 intPotionAmount) public {
+        require(armorAmount>0 || shieldAmount>0 || weaponAmount>0 || potionAmount>0 || intPotionAmount>0); //Require buying at least something, otherwise you are wasting gas!
+        require((w.equipment.potions+potionAmount) <= maxPotions);
+        require((w.equipment.intPotions+intPotionAmount) <= maxIntPotions);
+        w.equipment.armorStrength += armorAmount;
+        w.equipment.shieldStrength += shieldAmount;
+        w.equipment.weaponStrength += weaponAmount;
+        w.equipment.potions += potionAmount;
+        w.equipment.intPotions += intPotionAmount;
     }    
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Transaction/Payment Handling
     //////////////////////////////////////////////////////////////////////////////////////////
 
-	function payWarriorInternal(warrior storage w,uint amount,bool tax) internal {
+	function receiveFunds(warrior storage w,uint amount,bool tax) public {
 		if(tax) {
 			//TODO: Founders Guild?
 			uint ownerValue = amount / 100;
@@ -620,138 +409,137 @@ library LibWarrior {
     // Actions/Activities/Effects
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    function levelUp(warrior storage w) internal {
-        require(w.xp >= getXPTargetForLevel(w.level));
-        w.level++;
-        w.str++;
-        w.dex++;
-        w.con++;
-        w.points += ((w.level+pointsLevelOffset) * pointsLevelMultiplier) ** levelPointsExponent;
+    function levelUp(warrior storage w) public {
+        require(w.stats.xp >= calcXPTargetForLevel(w.stats.level));
+        w.stats.level++;
+        w.stats.str++;
+        w.stats.dex++;
+        w.stats.con++;
+        w.stats.points += ((w.stats.level+pointsLevelOffset) * pointsLevelMultiplier) ** levelPointsExponent;
+        w.stats.baseHP = uint64(calcBaseHP(w.stats.level,w.stats.con,w.stats.str));
     }
 
-	function awardXP(warrior storage w, uint64 _xp) internal {
-		w.xp += _xp;
+	function awardXP(warrior storage w, uint64 amount) public {
+		w.stats.xp += amount;
         if(canLevelUp(w)) levelUp(w);
     }
 
-    function earnXPForKill(warrior storage w, uint killLevel) internal {
-        awardXP(w,getXPForKill(w,uint16(killLevel)));
-    }
-
-    function practice(warrior storage w) internal {
+    function practice(warrior storage w) public {
 		w.state = warriorState.Practicing;
-        if(w.intPotions>0){
-            w.intPotions--;
-            w.trainingEnds = uint32(block.timestamp + (getTimeToPractice(w)/intPotionFactor));
+        if(w.equipment.intPotions>0){
+            w.equipment.intPotions--;
+            w.trainingEnds = uint32(block.timestamp + (calcTimeToPractice(w.stats.level)/intPotionFactor));
         }else{
-            w.trainingEnds = uint32(block.timestamp + getTimeToPractice(w));
+            w.trainingEnds = uint32(block.timestamp + calcTimeToPractice(w.stats.level)); 
         }
     }
 
-	function stopPracticing(warrior storage w) internal {
-        awardXP(w,getXPForPractice(w));
+	function stopPracticing(warrior storage w) public {
+        awardXP(w,calcXPForPractice(w.stats.level));
         w.state = warriorState.Idle;
     }
 
-    function startTeaching(warrior storage w, uint teachingFee) internal {
+    function startTeaching(warrior storage w, uint teachingFee) public {
         w.teachingFee = teachingFee;
         w.state = warriorState.Teaching;
     }
 
-	function stopTeaching(warrior storage w) internal {
+	function stopTeaching(warrior storage w) public {
         w.state = warriorState.Idle;
     }
 
-    function canTrainWith(warrior storage w, warrior storage t) internal view returns(bool) {
+    function canTrainWith(warrior storage w, warrior storage t) public view returns(bool) {
         return (
             w.balance >= t.teachingFee &&
-            t.level > w.level &&
-            getDominantStatValue(t)>getDominantStatValue(w) &&
+            t.stats.level > w.stats.level &&
+            calcDominantStatValue(t.stats.con,t.stats.dex,t.stats.str)>calcDominantStatValue(w.stats.con,w.stats.dex,w.stats.str) && 
             block.timestamp >= t.trainingEnds
         );
     }
 
-    function trainWith(warrior storage w, warrior storage t) internal {
+    function trainWith(warrior storage w, warrior storage t) public {
         require(canTrainWith(w,t));
         w.balance -= t.teachingFee;
-        payWarriorInternal(t,t.teachingFee,true);
+        receiveFunds(t,t.teachingFee,true);
         w.state = warriorState.Training;
-        if(w.intPotions>0){
-            w.intPotions--;
-            w.trainingEnds = uint32(block.timestamp + (getTimeToPractice(w)/intPotionFactor));
+        if(w.equipment.intPotions>0){
+            w.equipment.intPotions--;
+            w.trainingEnds = uint32(block.timestamp + (calcTimeToPractice(w.stats.level)/intPotionFactor));
             t.trainingEnds = w.trainingEnds;
         }else{
-            w.trainingEnds = uint32(block.timestamp + getTimeToPractice(w));
+            w.trainingEnds = uint32(block.timestamp + calcTimeToPractice(w.stats.level));
             t.trainingEnds = w.trainingEnds;
         }
     }
 
-	function stopTraining(warrior storage w, warrior storage t) internal {
-        if(getDominantStatValue(t)==t.str) w.str++;
-        else if(getDominantStatValue(t)==t.dex) w.dex++;
-        else w.con++;
+	function stopTraining(warrior storage w, warrior storage t) public {
+        uint16 trainerDominantStatVal = calcDominantStatValue(t.stats.con,t.stats.dex,t.stats.str);
+        if(trainerDominantStatVal==t.stats.str) w.stats.str++;
+        else if(trainerDominantStatVal==t.stats.dex) w.stats.dex++;
+        else w.stats.con++;
+        w.stats.baseHP = uint64(calcBaseHP(w.stats.level,w.stats.con,w.stats.str));
         w.state = warriorState.Idle;
     }
 
-    function revive(warrior storage w) internal {
+    function revive(warrior storage w) public {
         require(canRevive(w));
 		w.state = warriorState.Idle;
-        w.dmg = 0;
+        w.stats.dmg = 0;
     }
 
-	function retire(warrior storage w) internal {
-		require(w.state != warriorState.BattlePending && w.state != warriorState.Battling);
+	function retire(warrior storage w) public {
+		require(w.state != warriorState.BattlePending && w.state != warriorState.Battling && w.state != warriorState.Retired);
 		w.state = warriorState.Retired;
         w.owner.transfer(w.balance);
     }
 
-    function kill(warrior storage w) internal {
+    function kill(warrior storage w) public {
 		w.state = warriorState.Incapacitated;
     }
 
-    function drinkPotion(warrior storage w) internal {
-		require(w.potions>0);
-        require(w.dmg>0);
-        w.potions--;
-        if(w.dmg>potionHealAmount){
-            w.dmg -= potionHealAmount;
+    function drinkPotion(warrior storage w) public {
+		require(w.equipment.potions>0);
+        require(w.stats.dmg>0);
+        w.equipment.potions--;
+        if(w.stats.dmg>potionHealAmount){
+            w.stats.dmg -= potionHealAmount;
         }else{
-            w.dmg = 0;
+            w.stats.dmg = 0;
         }
     }
 
-    function applyDamage(warrior storage w, uint damage) internal returns (bool resultsInDeath) {
-		w.dmg += uint64(damage);
-        if(w.dmg >= getBaseHP(w)) w.dmg = uint64(getBaseHP(w));
+    function applyDamage(warrior storage w, uint damage) public returns (bool resultsInDeath) {
+		w.stats.dmg += uint64(damage);
+        if(w.stats.dmg >= w.stats.baseHP) w.stats.dmg = w.stats.baseHP;
         resultsInDeath = (getHP(w) <= 0);
     }
 
-    function wearWeapon(warrior storage w) internal {
-        if(w.weaponStrength>0){
-            w.weaponWear++;
-            if(w.weaponWear>((maxWeapon+1)-w.weaponStrength)){ //Wear increases as you approach max level
-                w.weaponStrength--;
-                w.weaponWear=0;
+    function wearWeapon(warrior storage w) public {
+        if(w.equipment.weaponStrength>0){
+            w.equipment.weaponWear++;
+            if(w.equipment.weaponWear>((maxWeapon+1)-w.equipment.weaponStrength)){ //Wear increases as you approach max level
+                w.equipment.weaponStrength--;
+                w.equipment.weaponWear=0;
             }
         }
     }
 
-    function wearArmor(warrior storage w) internal {
-        if(w.armorStrength>0){
-            w.armorWear++;
-            if(w.armorWear>((maxArmor+1)-w.armorStrength)){ //Wear increases as you approach max level
-                w.armorStrength--;
-                w.armorWear=0;
+    function wearArmor(warrior storage w) public {
+        if(w.equipment.armorStrength>0){
+            w.equipment.armorWear++;
+            if(w.equipment.armorWear>((maxArmor+1)-w.equipment.armorStrength)){ //Wear increases as you approach max level
+                w.equipment.armorStrength--;
+                w.equipment.armorWear=0;
             }
         }
     }
 
-    function wearShield(warrior storage w) internal {
-        if(w.shieldStrength>0){
-            w.shieldWear++;
-            if(w.shieldWear>((maxShield+1)-w.shieldStrength)){ //Wear increases as you approach max level
-                w.shieldStrength--;
-                w.shieldWear=0;
+    function wearShield(warrior storage w) public {
+        if(w.equipment.shieldStrength>0){
+            w.equipment.shieldWear++;
+            if(w.equipment.shieldWear>((maxShield+1)-w.equipment.shieldStrength)){ //Wear increases as you approach max level
+                w.equipment.shieldStrength--;
+                w.equipment.shieldWear=0;
             }
         }
     }
